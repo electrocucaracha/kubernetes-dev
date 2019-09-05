@@ -1,0 +1,4 @@
+.vagrant/
+.tox/
+*.log
+k8s_bin/
