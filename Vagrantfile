@@ -19,7 +19,10 @@ Vagrant.configure("2") do |config|
   config.vm.provider :libvirt
   config.vm.provider :virtualbox
 
-  config.vm.box = "elastic/ubuntu-16.04-x86_64"
+  config.vm.synced_folder './', '/vagrant', type: "rsync",
+    rsync__args: ["--verbose", "--archive", "--delete", "-z"]
+  config.vm.box = "peru/ubuntu-18.04-server-amd64"
+  config.vm.box_version = "20200501.01"
   config.vm.provision 'shell', privileged: false do |sh|
     sh.inline = <<-SHELL
       cd /vagrant
@@ -39,6 +42,10 @@ Vagrant.configure("2") do |config|
     v.management_network_address = "192.168.124.0/30"
     v.management_network_name = "k8s-mgmt-net"
     v.random_hostname = true
+  end
+
+  config.vm.provider "virtualbox" do |v| 
+    v.gui = false
   end
 
   if ENV['http_proxy'] != nil and ENV['https_proxy'] != nil

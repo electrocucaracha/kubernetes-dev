@@ -11,12 +11,28 @@
 set -o errexit
 set -o pipefail
 
-if ! command -v docker; then
-    KRD_ACTIONS=("install_docker")
-    curl -fsSL https://raw.githubusercontent.com/electrocucaracha/krd/master/aio.sh | KRD_ACTIONS_DECLARE=$(declare -p KRD_ACTIONS) bash
+if ! command -v curl; then
+    # shellcheck disable=SC1091
+    source /etc/os-release || source /usr/lib/os-release
+    case ${ID,,} in
+        ubuntu|debian|raspbian)
+            sudo apt-get update -qq > /dev/null
+            sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 curl
+        ;;
+    esac
 fi
 
-sudo git clone --depth 1 https://github.com/kubernetes/kubernetes -b v1.15.3 /opt/kubernetes
+pkgs=""
+for pkg in git docker; do
+    if ! command -v "$pkg"; then
+        pkgs+=" $pkg"
+    fi
+done
+if [ -n "$pkgs" ]; then
+    curl -fsSL http://bit.ly/install_pkg | PKG=$pkgs bash
+fi
+
+sudo git clone --depth 1 https://github.com/kubernetes/kubernetes -b v1.18.2 /opt/kubernetes
 
 export KUBERNETES_HTTP_PROXY=$HTTP_PROXY
 export KUBERNETES_HTTPS_PROXY=$HTTPS_PROXY
